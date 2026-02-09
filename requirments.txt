@@ -1,0 +1,12 @@
+streamlit
+torch>=2.0.0
+torchvision
+ultralytics
+opencv-python
+pillow
+matplotlib
+numpy
+pytorch-grad-cam
+seaborn
+scikit-learn
+tqdm
