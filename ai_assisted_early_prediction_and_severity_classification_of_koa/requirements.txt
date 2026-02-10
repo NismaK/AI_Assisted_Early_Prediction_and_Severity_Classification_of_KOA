@@ -1,0 +1,10 @@
+streamlit
+torch
+torchvision
+opencv-python
+pillow
+matplotlib
+scikit-learn
+gdown
+ultralytics
+git+https://github.com/jacobgil/pytorch-grad-cam.git
