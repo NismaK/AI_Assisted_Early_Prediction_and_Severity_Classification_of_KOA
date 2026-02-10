@@ -1,10 +1,8 @@
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
 streamlit
-torch
-torchvision
-opencv-python-headless
-pillow
 matplotlib
-scikit-learn
-gdown
-ultralytics
-git+https://github.com/jacobgil/pytorch-grad-cam.git
+pillow
+numpy
+
