@@ -1,0 +1,19 @@
+# Flutter
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.g.dart
+
+# Python backend
+__pycache__/
+*.pyc
+backend/reports/
+backend/patient_history.json
+
+# Model files (too large for GitHub)
+backend/*.pt
+
+# IDE
+.vscode/
+*.log
