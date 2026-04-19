@@ -46,8 +46,6 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
       _errorMessage = null;
     });
-
-    // Simulate authentication delay
     Future.delayed(const Duration(seconds: 1), () {
       if (_usernameController.text == 'doctor' &&
           _passwordController.text == '1234') {
@@ -74,7 +72,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App logo
               Container(
                 width: 80,
                 height: 80,
@@ -89,8 +86,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // App title
               const Text(
                 'Knee OA Analyzer',
                 style: TextStyle(
@@ -104,8 +99,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
               ),
               const SizedBox(height: 40),
-
-              // Username field
               TextField(
                 controller: _usernameController,
                 decoration: InputDecoration(
@@ -117,8 +110,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Password field
               TextField(
                 controller: _passwordController,
                 obscureText: true,
@@ -130,8 +121,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-
-              // Error message
               if (_errorMessage != null) ...[
                 const SizedBox(height: 10),
                 Text(
@@ -140,8 +129,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
               const SizedBox(height: 20),
-
-              // Login button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -160,8 +147,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Demo credentials hint
               const Text(
                 'Username: doctor  |  Password: 1234',
                 style: TextStyle(fontSize: 11, color: Color(0xFF9CA3AF)),
@@ -191,12 +176,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isGeneratingPdf = false;
   Map<String, dynamic>? _result;
 
-  // Patient detail controllers
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   String _gender = 'Male';
 
-  // Grade color mapping for visual feedback
   Color _gradeColor(int grade) {
     switch (grade) {
       case 0:
@@ -214,7 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Pick image from device gallery
   Future<void> _pickFromGallery() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -226,7 +208,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Pick image using device camera
   Future<void> _pickFromCamera() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.camera);
     if (image != null) {
@@ -238,7 +219,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Send image to backend for OA grade prediction
   Future<void> _analyzeImage() async {
     if (_imageBytes == null) return;
     if (_nameController.text.isEmpty) {
@@ -249,15 +229,12 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-
     setState(() => _isAnalyzing = true);
-
     try {
       final request = http.MultipartRequest(
         'POST',
         Uri.parse('http://127.0.0.1:8000/predict'),
       );
-
       request.files.add(
         http.MultipartFile.fromBytes(
           'file',
@@ -283,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'patient_age': _ageController.text,
           'patient_gender': _gender,
           'all_probabilities': data['all_probabilities'],
+          'gradcam_image': data['gradcam_image'],
         };
       });
     } catch (e) {
@@ -294,11 +272,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  // Request PDF report generation from backend
   Future<void> _generateReport() async {
     if (_result == null) return;
     setState(() => _isGeneratingPdf = true);
-
     try {
       final response = await http.post(
         Uri.parse('http://127.0.0.1:8000/generate-report'),
@@ -315,10 +291,10 @@ class _HomeScreenState extends State<HomeScreen> {
             'confidence': _result!['confidence'],
             'findings': _result!['findings'],
             'all_probabilities': _result!['all_probabilities'],
+            'gradcam_image': _result!['gradcam_image'],
           },
         }),
       );
-
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -348,7 +324,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          // Navigate to patient history
           IconButton(
             icon: const Icon(Icons.history, color: Colors.white),
             tooltip: 'Patient History',
@@ -357,7 +332,6 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (_) => const HistoryScreen()),
             ),
           ),
-          // Logout
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
             tooltip: 'Logout',
@@ -389,8 +363,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
-
-                  // Patient name
                   TextField(
                     controller: _nameController,
                     decoration: InputDecoration(
@@ -406,8 +378,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-
-                  // Age and gender row
                   Row(
                     children: [
                       Expanded(
@@ -430,7 +400,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          initialValue: _gender,
+                          value: _gender,
                           decoration: InputDecoration(
                             labelText: 'Gender',
                             border: OutlineInputBorder(
@@ -458,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── X-ray Image Preview ───────────────────────────
+            // ── X-ray Preview ─────────────────────────────────
             Container(
               height: 220,
               decoration: BoxDecoration(
@@ -497,7 +467,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── Image Source Buttons ──────────────────────────
+            // ── Camera & Gallery Buttons ──────────────────────
             Row(
               children: [
                 Expanded(
@@ -587,7 +557,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Patient summary row
+                    // Patient summary
                     Row(
                       children: [
                         const Icon(
@@ -609,7 +579,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const Divider(height: 20),
 
-                    // Grade badge and label
+                    // Grade badge
                     Row(
                       children: [
                         Container(
@@ -654,8 +624,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const Spacer(),
-
-                        // Confidence badge
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -712,7 +680,62 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Grade-wise probability bars
+                    // ── Grad-CAM Visualization ────────────────
+                    if (_result!['gradcam_image'] != null) ...[
+                      const Text(
+                        'Grad-CAM — Region of Interest',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          base64Decode(_result!['gradcam_image']),
+                          fit: BoxFit.contain,
+                          height: 300,
+                          width: double.infinity,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          _colorLegendDot(const Color(0xFFE53935)),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'High focus',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          const SizedBox(width: 12),
+                          _colorLegendDot(const Color(0xFFEF9F27)),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Medium focus',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                          const SizedBox(width: 12),
+                          _colorLegendDot(const Color(0xFF1565C0)),
+                          const SizedBox(width: 4),
+                          const Text(
+                            'Low focus',
+                            style: TextStyle(fontSize: 11),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Red/yellow regions indicate areas the model focused on for prediction.',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF9CA3AF),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Grade-wise probabilities
                     const Text(
                       'Grade-wise Probability',
                       style: TextStyle(
@@ -753,7 +776,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Generate PDF report button
+                    // PDF Report Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -774,7 +797,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 12),
 
-                    // Medical disclaimer
+                    // Disclaimer
                     const Text(
                       '⚕ For educational and decision-support purposes only. '
                       'Final diagnosis must be made by a qualified physician.',
@@ -787,6 +810,15 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  // Color legend dot helper
+  Widget _colorLegendDot(Color color) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
@@ -811,7 +843,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     _fetchHistory();
   }
 
-  // Fetch all patient records from backend
   Future<void> _fetchHistory() async {
     try {
       final response = await http.get(
@@ -828,13 +859,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-  // Delete a specific patient record
   Future<void> _deleteRecord(int id) async {
     await http.delete(Uri.parse('http://127.0.0.1:8000/history/$id'));
     _fetchHistory();
   }
 
-  // Returns color based on KL grade severity
   Color _gradeColor(int grade) {
     switch (grade) {
       case 0:
@@ -925,8 +954,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16),
-
-                      // Grade badge
                       leading: Container(
                         width: 48,
                         height: 48,
@@ -945,8 +972,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                         ),
                       ),
-
-                      // Patient name and result
                       title: Text(
                         patient['name'],
                         style: const TextStyle(
@@ -976,8 +1001,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           ),
                         ],
                       ),
-
-                      // Delete button
                       trailing: IconButton(
                         icon: const Icon(
                           Icons.delete_outline,
