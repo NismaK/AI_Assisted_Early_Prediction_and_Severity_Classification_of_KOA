@@ -39,9 +39,10 @@ PyTorch Ensemble Model
 | PDF Generation | ReportLab |
 | Image Processing | OpenCV, Pillow |
 
----
+
 
 ## 📁 Project Structure
+```
 knee_oa_app/
 ├── lib/
 │   └── main.dart              # Flutter app — Login, Home, History screens
@@ -52,7 +53,7 @@ knee_oa_app/
 │   ├── efficientnet_v2_s_best.pt    # Trained model weights
 │   └── densenet_201_best.pt         # Trained model weights
 └── pubspec.yaml
----
+```
 
 ## 🚀 Setup & Installation
 
