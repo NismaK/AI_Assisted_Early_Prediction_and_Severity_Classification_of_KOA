@@ -17,3 +17,9 @@ backend/*.pt
 # IDE
 .vscode/
 *.log
+# Secrets and extra model formats
+.env
+venv/
+.venv/
+*.pth
+*.h5

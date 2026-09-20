@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
@@ -221,15 +222,26 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _analyzeImage() async {
     if (_imageBytes == null) return;
-    if (_nameController.text.isEmpty) {
+
+    // Name validation
+    if (_nameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter patient name before analyzing.'),
-        ),
+        const SnackBar(content: Text('Please enter patient name.')),
       );
       return;
     }
+
+    // Age validation
+    final age = int.tryParse(_ageController.text);
+    if (_ageController.text.isEmpty || age == null || age < 1 || age > 120) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a valid age (1-120).')),
+      );
+      return;
+    }
+
     setState(() => _isAnalyzing = true);
+
     try {
       final request = http.MultipartRequest(
         'POST',
@@ -242,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
           filename: 'xray.jpg',
         ),
       );
-      request.fields['patient_name'] = _nameController.text;
+      request.fields['patient_name'] = _nameController.text.trim();
       request.fields['patient_age'] = _ageController.text;
       request.fields['patient_gender'] = _gender;
 
@@ -256,7 +268,7 @@ class _HomeScreenState extends State<HomeScreen> {
           'label': data['label'],
           'confidence': data['confidence'],
           'findings': data['findings'],
-          'patient_name': _nameController.text,
+          'patient_name': _nameController.text.trim(),
           'patient_age': _ageController.text,
           'patient_gender': _gender,
           'all_probabilities': data['all_probabilities'],
@@ -312,6 +324,14 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Widget _colorLegendDot(Color color) {
+    return Container(
+      width: 12,
+      height: 12,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // ── Patient Details Card ──────────────────────────
+            // ── Patient Details ───────────────────────────────
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -363,11 +383,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
+
+                  // Name field — letters and spaces only
                   TextField(
                     controller: _nameController,
+                    maxLength: 50,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                    ],
                     decoration: InputDecoration(
                       labelText: 'Patient Name *',
                       prefixIcon: const Icon(Icons.person),
+                      counterText: '',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -378,15 +405,22 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
+
                   Row(
                     children: [
+                      // Age field — digits only, max 3
                       Expanded(
                         child: TextField(
                           controller: _ageController,
                           keyboardType: TextInputType.number,
+                          maxLength: 3,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
                           decoration: InputDecoration(
-                            labelText: 'Age',
+                            labelText: 'Age (1-120)',
                             prefixIcon: const Icon(Icons.cake),
+                            counterText: '',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -398,6 +432,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(width: 10),
+
+                      // Gender dropdown
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: _gender,
@@ -467,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 12),
 
-            // ── Camera & Gallery Buttons ──────────────────────
+            // ── Camera & Gallery ──────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -566,13 +602,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Color(0xFF6B7280),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          '${_result!['patient_name']}  •  '
-                          '${_result!['patient_age']} yrs  •  '
-                          '${_result!['patient_gender']}',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF6B7280),
+                        Expanded(
+                          child: Text(
+                            '${_result!['patient_name']}  •  '
+                            '${_result!['patient_age']} yrs  •  '
+                            '${_result!['patient_gender']}',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF6B7280),
+                            ),
                           ),
                         ),
                       ],
@@ -647,7 +685,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Radiological findings
+                    // Findings
                     const Text(
                       'Radiological Findings',
                       style: TextStyle(
@@ -680,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // ── Grad-CAM Visualization ────────────────
+                    // Grad-CAM
                     if (_result!['gradcam_image'] != null) ...[
                       const Text(
                         'Grad-CAM — Region of Interest',
@@ -695,7 +733,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Image.memory(
                           base64Decode(_result!['gradcam_image']),
                           fit: BoxFit.contain,
-                          height: 300,
+                          height: 200,
                           width: double.infinity,
                         ),
                       ),
@@ -726,7 +764,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        'Red/yellow regions indicate areas the model focused on for prediction.',
+                        'Red/yellow regions indicate areas the model focused on.',
                         style: TextStyle(
                           fontSize: 11,
                           color: Color(0xFF9CA3AF),
@@ -735,7 +773,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 16),
                     ],
 
-                    // Grade-wise probabilities
+                    // Probabilities
                     const Text(
                       'Grade-wise Probability',
                       style: TextStyle(
@@ -776,7 +814,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // PDF Report Button
+                    // PDF Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -810,15 +848,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  // Color legend dot helper
-  Widget _colorLegendDot(Color color) {
-    return Container(
-      width: 12,
-      height: 12,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }
