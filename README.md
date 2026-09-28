@@ -18,13 +18,14 @@ An end-to-end clinical decision support system that automatically grades knee os
 ---
 
 ## 🏗️ Architecture
+```
 Flutter Mobile App (Frontend)
-↕ REST API
+        ↓
 FastAPI Backend (Python)
-↕
+        ↓
 PyTorch Ensemble Model
 (EfficientNet-B5 + EfficientNet-V2-S + DenseNet-201)
-
+```
 ---
 
 ## 🛠️ Tech Stack
