@@ -83,6 +83,8 @@ flutter run -d chrome
 
 ---
 
+<img src="image app 1.PNG">
+
 ## 🧠 Model Details
 
 The system uses a **weighted probability averaging ensemble** of three CNN architectures:
